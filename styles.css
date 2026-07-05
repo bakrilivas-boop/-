@@ -117,6 +117,29 @@ p {
   justify-content: center;
 }
 
+.mobile-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mobile-menu-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
 .tab-btn,
 .chip,
 .action,
@@ -824,14 +847,124 @@ p {
 }
 
 @media (max-width: 760px) {
-  .topbar,
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+  }
+
   .layout {
     padding-left: 14px;
     padding-right: 14px;
   }
 
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 12px;
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .brand {
+    gap: 10px;
+  }
+
+  .brand-mark {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .brand-mark svg {
+    width: 28px;
+    height: 28px;
+  }
+
   .brand h1 {
-    font-size: 21px;
+    font-size: 20px;
+  }
+
+  .brand p {
+    display: none;
+  }
+
+  .tabs,
+  .stats-bar,
+  .rail {
+    display: none;
+  }
+
+  body.mobile-menu-open .tabs {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: 6px;
+    padding-top: 2px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  body.mobile-menu-open .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  body.mobile-menu-open .topbar {
+    position: static;
+  }
+
+  body.mobile-menu-open .stats-bar {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  body.mobile-menu-open .rail {
+    display: grid;
+    order: 0;
+    gap: 12px;
+  }
+
+  .main-panel {
+    order: 1;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 8px 10px;
+  }
+
+  .stats-bar {
+    gap: 6px;
+  }
+
+  .stat-pill {
+    min-width: 0;
+    padding: 7px 6px;
+  }
+
+  .stat-pill strong {
+    font-size: 16px;
+  }
+
+  .source-box,
+  .quick-panel,
+  .sign-board {
+    box-shadow: none;
+  }
+
+  .source-box,
+  .quick-panel {
+    padding: 12px;
+  }
+
+  .search {
+    height: 44px;
   }
 
   .stats-bar,
@@ -857,5 +990,9 @@ p {
 
   .knowledge-card {
     grid-template-columns: 1fr;
+  }
+
+  body.mobile-menu-open .stats-bar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
