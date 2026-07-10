@@ -774,6 +774,7 @@ const statsBar = $("#statsBar");
 const quickPanel = $("#quickPanel");
 const searchInput = $("#searchInput");
 const importInput = $("#importInput");
+const progressImportInput = $("#progressImportInput");
 const mobileMenuToggle = $("#mobileMenuToggle");
 
 document.addEventListener("click", handleClick);
@@ -784,6 +785,7 @@ searchInput.addEventListener("input", (event) => {
   render();
 });
 importInput.addEventListener("change", importQuestions);
+progressImportInput.addEventListener("change", importProgress);
 
 render();
 
@@ -808,9 +810,13 @@ function handleClick(event) {
   if (action === "practice-id") jumpToQuestion(target.dataset.id);
   if (action === "clear-wrong") clearWrong(target.dataset.id);
   if (action === "export-progress") exportProgress();
+  if (action === "import-progress") progressImportInput.click();
   if (action === "export-bank") exportBank();
   if (action === "import-bank") importInput.click();
   if (action === "reset-progress") resetProgress();
+  if (action === "finish-exam") finishExam();
+  if (action === "restart-exam") restartExam();
+  if (action === "review-exam-wrong") reviewExamWrong();
 }
 
 function handleChange(event) {
@@ -850,6 +856,11 @@ function setPracticeSubject(subject) {
 
 function setPracticeMode(mode) {
   state.practiceMode = mode;
+  if (mode === "exam") {
+    state.chapter = "全部";
+    state.query = "";
+    searchInput.value = "";
+  }
   resetSession();
   render();
 }
@@ -969,14 +980,33 @@ function renderHome() {
 }
 
 function subjectCard(subject, text, tone, iconName) {
+  const stats = getSubjectStats(subject);
   return `
     <button class="subject-card ${tone}" data-action="subject" data-subject="${subject}">
       <span class="icon-box">${icon(iconName)}</span>
       <h2>${subject}</h2>
       <p>${text}</p>
+      <div class="subject-metrics">
+        <span>已练 ${stats.attempts}</span>
+        <span>正确率 ${stats.attempts ? `${stats.rate}%` : "--"}</span>
+        <span>错题 ${stats.wrong}</span>
+      </div>
       <span class="tag">进入模块</span>
     </button>
   `;
+}
+
+function getSubjectStats(subject) {
+  const questions = allQuestions();
+  const subjectIds = new Set(questions.filter((item) => item.subject === subject).map((item) => item.id));
+  const history = store.history.filter((item) => subjectIds.has(item.id));
+  const correct = history.filter((item) => item.correct).length;
+  const wrong = Object.keys(store.wrong).filter((id) => subjectIds.has(id)).length;
+  return {
+    attempts: history.length,
+    rate: history.length ? Math.round((correct / history.length) * 100) : 0,
+    wrong
+  };
 }
 
 function planCard(title, items) {
@@ -1141,6 +1171,9 @@ function renderPracticeBlock(forcedSubject) {
     state.active = null;
   }
   ensureSession();
+  if (state.practiceMode === "exam" && state.exam?.finished) {
+    return renderExamResult();
+  }
   const questions = state.session;
   const current = questions[state.current];
   if (!current) {
@@ -1151,6 +1184,8 @@ function renderPracticeBlock(forcedSubject) {
   const active = getActive(current.id);
   const selected = active.selected || [];
   const checked = active.checked;
+  const isExam = state.practiceMode === "exam";
+  const examAnswered = isExam ? examAnsweredCount() : 0;
 
   return `
     <section class="practice-grid">
@@ -1170,10 +1205,10 @@ function renderPracticeBlock(forcedSubject) {
         </div>
 
         <div class="question-top">
-          <select id="chapterSelect" aria-label="章节">
+          <select id="chapterSelect" aria-label="章节" ${isExam ? "disabled" : ""}>
             ${chapters.map((chapter) => `<option value="${chapter}" ${state.chapter === chapter ? "selected" : ""}>${chapter}</option>`).join("")}
           </select>
-          <div class="muted">第 ${state.current + 1} / ${questions.length} 题</div>
+          <div class="muted">第 ${state.current + 1} / ${questions.length} 题${isExam ? ` · 已答 ${examAnswered}` : ""}</div>
         </div>
         <div class="progress-track" aria-hidden="true"><div class="progress-fill" style="width:${progress}%"></div></div>
 
@@ -1190,18 +1225,20 @@ function renderPracticeBlock(forcedSubject) {
           ${current.options.map((option, index) => renderAnswer(current, option, index, selected, checked)).join("")}
         </div>
 
-        ${checked ? renderFeedback(current, active.correct, active.revealed) : ""}
+        ${checked && !isExam ? renderFeedback(current, active.correct, active.revealed) : ""}
 
         <div class="question-actions">
           <div class="toolbar">
-            ${current.type === "multi" && !checked ? `<button class="action primary" data-action="submit">${icon("check")}提交答案</button>` : ""}
-            ${!checked ? `<button class="action" data-action="reveal">${icon("eye")}看解析</button>` : ""}
+            ${!isExam && current.type === "multi" && !checked ? `<button class="action primary" data-action="submit">${icon("check")}提交答案</button>` : ""}
+            ${!isExam && !checked ? `<button class="action" data-action="reveal">${icon("eye")}看解析</button>` : ""}
             <button class="action" data-action="favorite" data-id="${current.id}">${icon("star")}${store.favorites.includes(current.id) ? "取消收藏" : "收藏"}</button>
-            ${checked ? `<button class="action" data-action="mastered" data-id="${current.id}">${icon("check")}已掌握</button>` : ""}
+            ${checked && !isExam ? `<button class="action" data-action="mastered" data-id="${current.id}">${icon("check")}已掌握</button>` : ""}
           </div>
           <div class="toolbar">
             <button class="icon-btn" data-action="prev" title="上一题">${icon("left")}</button>
-            <button class="action primary" data-action="next">下一题${icon("right")}</button>
+            ${isExam && state.current === questions.length - 1
+              ? `<button class="action primary" data-action="finish-exam">${icon("check")}交卷</button>`
+              : `<button class="action primary" data-action="next">下一题${icon("right")}</button>`}
           </div>
         </div>
       </article>
@@ -1241,11 +1278,21 @@ function renderFeedback(question, correct, revealed) {
 }
 
 function renderSessionSummary() {
-  const examLine = state.practiceMode === "exam" ? `<p>${examModeDescription(state.practiceSubject)}</p>` : "";
+  if (state.practiceMode === "exam" && state.exam) {
+    const answered = examAnsweredCount();
+    return `
+      <p>${examModeDescription(state.practiceSubject)}</p>
+      <div class="chip-list">
+        <span class="tag">已答 ${answered}</span>
+        <span class="tag">剩余 ${Math.max(0, state.session.length - answered)}</span>
+        <span class="tag">用时 ${formatDuration(Date.now() - state.exam.startedAt)}</span>
+      </div>
+      <p class="memory-line">模拟考试不会立即显示答案，交卷后统一查看成绩和错题。</p>
+    `;
+  }
   const wrongItems = state.session.filter((item) => store.wrong[item.id]).slice(0, 6);
   return `
     <p>模式：${modeName(state.practiceMode)} · 章节：${state.chapter}</p>
-    ${examLine}
     <div class="chip-list">
       <span class="tag">本轮 ${state.session.length} 题</span>
       <span class="tag">题库 ${allQuestions().length} 题</span>
@@ -1258,6 +1305,108 @@ function renderSessionSummary() {
       </div>
     ` : `<p>暂无错题，继续保持。</p>`}
   `;
+}
+
+function examAnsweredCount() {
+  if (!state.exam) return 0;
+  return Object.values(state.exam.answers).filter((answer) => answer.selected.length > 0).length;
+}
+
+function finishExam() {
+  if (state.practiceMode !== "exam" || !state.exam || state.exam.finished || !state.session.length) return;
+  const unanswered = state.session.length - examAnsweredCount();
+  if (unanswered > 0 && !confirm(`还有 ${unanswered} 道题未作答，确定交卷吗？`)) return;
+
+  const details = state.session.map((question) => {
+    const selected = state.exam.answers[question.id]?.selected || [];
+    return { id: question.id, selected, correct: sameSet(selected, question.answer) };
+  });
+  const correct = details.filter((item) => item.correct).length;
+  const wrong = details.filter((item) => item.selected.length > 0 && !item.correct).length;
+  const incorrect = details.length - correct;
+  details.forEach((item) => recordAnswer(item.id, item.correct));
+  state.exam.finished = true;
+  state.exam.finishedAt = Date.now();
+  state.exam.result = {
+    total: details.length,
+    correct,
+    wrong,
+    incorrect,
+    unanswered,
+    score: details.length ? Math.round((correct / details.length) * 100) : 0,
+    details
+  };
+  state.active = null;
+  render();
+  scrollToElement(".exam-result");
+}
+
+function renderExamResult() {
+  const result = state.exam?.result;
+  if (!result) return `<section class="question-card"><div class="empty">成绩生成失败，请重新开始模拟考试。</div></section>`;
+  const passLine = examPassLine(state.practiceSubject);
+  const passed = result.score >= passLine;
+  const wrongQuestions = result.details
+    .filter((item) => !item.correct)
+    .map((item) => allQuestions().find((question) => question.id === item.id))
+    .filter(Boolean)
+    .slice(0, 8);
+
+  return `
+    <section class="exam-result ${passed ? "passed" : "failed"}">
+      <div class="exam-score">
+        <span>${passed ? "达到目标" : "继续巩固"}</span>
+        <strong>${result.score}</strong>
+        <small>目标 ${passLine} 分</small>
+      </div>
+      <div class="exam-result-body">
+        <div>
+          <h2>${state.practiceSubject}模拟成绩</h2>
+          <p>共 ${result.total} 题，答对 ${result.correct} 题，答错 ${result.wrong} 题，未答 ${result.unanswered} 题，用时 ${formatDuration(state.exam.finishedAt - state.exam.startedAt)}。</p>
+        </div>
+        <div class="exam-metrics">
+          ${statPill(result.correct, "正确")}
+          ${statPill(result.wrong, "错误")}
+          ${statPill(result.unanswered, "未答")}
+        </div>
+        <div class="toolbar">
+          <button class="action primary" data-action="restart-exam">${icon("play")}再考一次</button>
+          ${result.incorrect ? `<button class="action" data-action="review-exam-wrong">${icon("book")}复习错题</button>` : ""}
+        </div>
+        ${wrongQuestions.length ? `
+          <div class="exam-wrong-list">
+            <h3>本次需要复习</h3>
+            ${wrongQuestions.map((question) => `
+              <button class="review-item" data-action="practice-id" data-id="${question.id}">
+                <strong>${question.question}</strong>
+                <span>${question.chapter}</span>
+              </button>
+            `).join("")}
+          </div>
+        ` : `<div class="notice">本次全部答对，可以进入下一阶段复习。</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function restartExam() {
+  state.practiceMode = "exam";
+  resetSession();
+  render();
+  scrollToElement(".practice-grid");
+}
+
+function reviewExamWrong() {
+  state.practiceMode = "wrong";
+  resetSession();
+  render();
+  scrollToElement(".practice-grid");
+}
+
+function scrollToElement(selector) {
+  requestAnimationFrame(() => {
+    document.querySelector(selector)?.scrollIntoView({ block: "start", behavior: "smooth" });
+  });
 }
 
 function ensureSession() {
@@ -1281,9 +1430,25 @@ function ensureSession() {
     questions = questions.slice(0, limit);
   }
   state.session = questions;
+  if (state.practiceMode === "exam") {
+    state.exam = {
+      subject: state.practiceSubject,
+      startedAt: Date.now(),
+      answers: {},
+      finished: false,
+      result: null
+    };
+  }
 }
 
 function getActive(questionId) {
+  if (state.practiceMode === "exam" && state.exam) {
+    if (!state.exam.answers[questionId]) {
+      state.exam.answers[questionId] = { id: questionId, selected: [], checked: false, correct: false, revealed: false };
+    }
+    state.active = state.exam.answers[questionId];
+    return state.active;
+  }
   if (!state.active || state.active.id !== questionId) {
     state.active = { id: questionId, selected: [], checked: false, correct: false, revealed: false };
   }
@@ -1301,6 +1466,10 @@ function selectAnswer(index) {
     return;
   }
   active.selected = [index];
+  if (state.practiceMode === "exam") {
+    render();
+    return;
+  }
   submitAnswer(false);
 }
 
@@ -1308,6 +1477,7 @@ function submitAnswer(revealed) {
   const question = state.session[state.current];
   if (!question) return;
   const active = getActive(question.id);
+  if (state.practiceMode === "exam") return;
   if (!active.selected.length && !revealed) return;
   const correct = sameSet(active.selected, question.answer);
   active.checked = true;
@@ -1444,6 +1614,7 @@ function renderSettings() {
           <p>已刷 ${store.answered} 题，正确 ${store.correct} 题，错题 ${Object.keys(store.wrong).length} 道，收藏 ${store.favorites.length} 道。</p>
           <div class="toolbar">
             <button class="action" data-action="export-progress">${icon("download")}导出进度</button>
+            <button class="action" data-action="import-progress">${icon("upload")}导入进度</button>
             <button class="action danger" data-action="reset-progress">${icon("trash")}清空进度</button>
           </div>
         </section>
@@ -1457,7 +1628,11 @@ function renderSettings() {
 }
 
 function exportProgress() {
-  downloadJson("驾考学习进度.json", store);
+  downloadJson("驾考学习进度.json", {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    progress: store
+  });
 }
 
 function exportBank() {
@@ -1488,6 +1663,48 @@ function importQuestions(event) {
     }
   };
   reader.readAsText(file, "utf-8");
+}
+
+function importProgress(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const incoming = data.progress || data;
+      const normalized = normalizeProgress(incoming);
+      if (!confirm(`将导入 ${normalized.answered} 条答题记录，并替换当前学习进度，确定继续吗？`)) return;
+      store = normalized;
+      saveStore();
+      resetSession();
+      alert("学习进度导入成功。");
+      render();
+    } catch (error) {
+      alert(`导入失败：${error.message}`);
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file, "utf-8");
+}
+
+function normalizeProgress(value) {
+  if (!value || typeof value !== "object") throw new Error("进度文件格式不正确。");
+  const answered = Math.max(0, Number.parseInt(value.answered, 10) || 0);
+  const correct = Math.min(answered, Math.max(0, Number.parseInt(value.correct, 10) || 0));
+  const wrong = value.wrong && typeof value.wrong === "object" && !Array.isArray(value.wrong)
+    ? Object.fromEntries(Object.entries(value.wrong).filter(([id, count]) => typeof id === "string" && Number(count) > 0).map(([id, count]) => [id, Math.floor(Number(count))]))
+    : {};
+  const favorites = Array.isArray(value.favorites) ? unique(value.favorites.map(String)) : [];
+  const mastered = Array.isArray(value.mastered) ? unique(value.mastered.map(String)) : [];
+  const history = Array.isArray(value.history)
+    ? value.history
+      .filter((item) => item && typeof item.id === "string" && typeof item.correct === "boolean")
+      .slice(0, 200)
+      .map((item) => ({ id: item.id, correct: item.correct, at: String(item.at || new Date().toISOString()) }))
+    : [];
+  return { answered, correct, wrong, favorites, mastered, history };
 }
 
 function normalizeQuestion(item, index) {
@@ -1599,6 +1816,17 @@ function examLimit(subject) {
     "科目三": 30,
     "科目四": 50
   }[subject] || 30;
+}
+
+function examPassLine(subject) {
+  return subject === "科目一" || subject === "科目四" ? 90 : 80;
+}
+
+function formatDuration(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}分${String(seconds).padStart(2, "0")}秒`;
 }
 
 function examModeDescription(subject) {
