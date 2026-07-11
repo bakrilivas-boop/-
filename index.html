@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>驾考全科工具</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23277a55'/%3E%3Cpath d='M6 20h20l-2.5-8H8.5L6 20Zm3 0v4m14-4v4M10 17h12' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -36,6 +37,13 @@
 
         <nav id="viewTabs" class="tabs" aria-label="模块"></nav>
         <div id="statsBar" class="stats-bar"></div>
+        <label class="search mobile-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m21 21-4.3-4.3" />
+            <circle cx="11" cy="11" r="7" />
+          </svg>
+          <input id="mobileSearchInput" type="search" placeholder="搜索知识点或题目" autocomplete="off" />
+        </label>
       </header>
 
       <main class="layout">
@@ -51,10 +59,11 @@
           <section class="source-box">
             <h2>资料依据</h2>
             <div class="source-list">
+              <span>道路交通安全法</span>
+              <span>道路交通安全法实施条例</span>
               <span>GA 1026-2022</span>
-              <span>公安部令第162号</span>
               <span>公安部令第163号</span>
-              <span>公安部令第172号修改</span>
+              <span>公安部令第172号</span>
             </div>
           </section>
 
@@ -91,6 +100,7 @@
 
     <input id="importInput" class="visually-hidden" type="file" accept="application/json,.json" />
     <input id="progressImportInput" class="visually-hidden" type="file" accept="application/json,.json" />
+    <script src="verified-500.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

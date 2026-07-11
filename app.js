@@ -1,6 +1,42 @@
 const STORAGE_KEY = "driver_exam_tool_v1";
 const CUSTOM_BANK_KEY = "driver_exam_custom_bank_v1";
 
+const ENROLLMENT_CHECKLIST = [
+  { id: "license-type", text: "已根据未来用车需求选好 C1 或 C2" },
+  { id: "eligibility", text: "已确认年龄、身体条件和既往驾驶证状态符合申请条件" },
+  { id: "materials", text: "已拿到报名材料清单，身份证原件仅现场核验、不长期交给中介" },
+  { id: "school-record", text: "已核验驾校营业信息和培训备案，不只看门店招牌" },
+  { id: "training-site", text: "已实地看过训练场、车辆、教练和卫生安全状况" },
+  { id: "schedule", text: "已问清周末、晚间、预约排队和单次实际练车时长" },
+  { id: "coach-change", text: "已问清能否换教练、是否一人一车、是否额外收取练车费" },
+  { id: "fee-list", text: "已拿到书面费用清单，逐项核对考试、补考、模拟、接送等费用" },
+  { id: "contract", text: "已阅读培训合同中的退费、转校、暂停和违约条款" },
+  { id: "receipt", text: "准备通过驾校对公渠道付款并索取正规票据" },
+  { id: "timeline", text: "已确认建档、体检、学时审核和各科预约的大致时间" },
+  { id: "appointment", text: "已确认考试预约由本人在交管系统核对，知道取消和缺考规则" },
+  { id: "exam-car", text: "已问清训练车型与考场考试车型是否一致" },
+  { id: "transfer-records", text: "已问清转校时合同结算、培训记录和学时衔接方式" },
+  { id: "no-guarantee", text: "已拒绝包过、代刷学时、代考和所谓内部名额" },
+  { id: "account", text: "不会把交管12123密码、短信验证码交给教练或中介" },
+  { id: "contact", text: "已保存驾校签约主体、对公账户、负责人和投诉渠道" },
+  { id: "compare", text: "已比较至少两到三家驾校后再决定" }
+];
+
+const ENROLLMENT_QUESTIONS = [
+  "这笔报价包含哪些项目？请把培训费、考试费、补考费、模拟费、场地费、接送费、体检照相费分别写清。",
+  "C1/C2目前有多少训练车和教练？高峰期约车通常要等多久？",
+  "每次预约能练多久？是一人一车还是多人轮换？周末和晚上能练吗？",
+  "训练车型、挡位和考场车型是否一致？科二、科三在哪个场地练？",
+  "中途换教练、暂停、转校或退学分别怎么收费？退费公式能否写进合同？",
+  "学时由谁审核？从报名建档到可以预约科目一通常有哪些步骤？",
+  "挂科后的补训、补考和再次模拟分别收费多少？",
+  "费用是否交到驾校对公账户？能否开具发票或正规收据？",
+  "考试由谁在交管系统预约？预约失败、取消或缺考分别怎样处理？",
+  "合同签约主体、实际培训主体和收款主体是否一致？不一致时由谁承担责任？",
+  "转校时能否提供培训记录、学时记录和费用结算单？接收驾校需要哪些材料？",
+  "报名后由哪位负责人对接？投诉电话、驾校总部和主管部门联系方式是什么？"
+];
+
 const SUBJECTS = [
   {
     id: "home",
@@ -36,6 +72,13 @@ const SUBJECTS = [
     subtitle: "安全文明驾驶常识",
     tone: "red",
     icon: "shield"
+  },
+  {
+    id: "guide",
+    title: "报名攻略",
+    subtitle: "选驾校、看合同、查费用、避开套路",
+    tone: "amber",
+    icon: "clipboard"
   },
   {
     id: "review",
@@ -288,10 +331,10 @@ const KNOWLEDGE = {
       memory: "靠边停车不是一把扎过去，是观察后逐步贴边。"
     },
     {
-      title: "夜间灯光",
-      tags: ["近光", "远近交替", "雾灯"],
+      title: "夜间会车与灯光",
+      tags: ["夜间会车", "近光", "远近交替", "雾灯"],
       points: [
-        "夜间遇到对向车辆驶来、跟车或在照明良好道路行驶时，一般使用近光灯。",
+        "夜间会车、跟车或在照明良好道路行驶时，一般使用近光灯。",
         "通过急弯、坡路、拱桥、人行横道或没有信号灯的路口，可按考试口令使用远近光交替示意。",
         "雾天行驶按规定开启雾灯和相关灯光，必要时开启危险报警闪光灯。"
       ],
@@ -728,7 +771,7 @@ const EXTRA_QUESTIONS = [
   q("s3-014", "科目三", "靠边停车", "single", "听到靠边停车指令后，第一步通常是什么？", ["开启右转向灯并观察右后方", "立即急刹", "向左变道", "不观察直接靠边"], [0], "靠边停车前要右灯、观察、确认安全。", "靠边先右灯右镜。"),
   q("s3-015", "科目三", "靠边停车", "judge", "靠边停车应逐步靠右，不能突然大幅切入。", ["正确", "错误"], [0], "突然切入容易影响后方车辆和压线。", "靠边是慢慢贴。"),
   q("s3-016", "科目三", "靠边停车", "multi", "靠边停车完成后通常应注意哪些？", ["停稳车辆", "挡位和驻车制动处理", "下车前观察后方", "直接开门下车"], [0, 1, 2], "靠边停车后要完成停车动作，下车前确认安全。", "停车不等于结束。"),
-  q("s3-017", "科目三", "夜间灯光", "single", "夜间遇到对向车辆驶来或跟车时，一般使用什么灯？", ["近光灯", "远光灯", "雾灯", "危险报警闪光灯"], [0], "遇到对向车辆驶来或跟车时使用近光灯，避免影响他人视线。", "对向来车或跟车用近光。"),
+  q("s3-017", "科目三", "夜间灯光", "single", "夜间会车或跟车时，一般使用什么灯？", ["近光灯", "远光灯", "雾灯", "危险报警闪光灯"], [0], "夜间会车或跟车时使用近光灯，避免影响他人视线。", "夜间会车或跟车用近光。"),
   q("s3-018", "科目三", "夜间灯光", "judge", "通过急弯、坡路、拱桥、人行横道或无信号路口，可按口令使用远近光交替示意。", ["正确", "错误"], [0], "这些场景常用远近光交替提醒。", "提醒通过用交替。"),
   q("s3-019", "科目三", "扣分高发点", "single", "科目三忘记打转向灯或观察不明显，通常反映什么问题？", ["动作流程不完整", "车辆没油", "天气太好", "座椅太软"], [0], "科三评判非常重视动作流程完整性。", "科三要让动作被看见。"),
   q("s3-020", "科目三", "扣分高发点", "multi", "科目三常见失分点包括哪些？", ["忘打灯", "不观察", "速度挡位不匹配", "礼让到位"], [0, 1, 2], "忘灯、不观察、速度挡位不匹配都很常见。", "科三怕流程漏。"),
@@ -748,7 +791,9 @@ const defaultStore = {
   wrong: {},
   favorites: [],
   mastered: [],
-  history: []
+  history: [],
+  questionStats: {},
+  guideChecks: []
 };
 
 let store = loadStore();
@@ -764,7 +809,9 @@ const state = {
   session: [],
   current: 0,
   active: null,
-  exam: null
+  exam: null,
+  guideCopyStatus: "",
+  guideCopySucceeded: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -773,17 +820,23 @@ const viewTabs = $("#viewTabs");
 const statsBar = $("#statsBar");
 const quickPanel = $("#quickPanel");
 const searchInput = $("#searchInput");
+const mobileSearchInput = $("#mobileSearchInput");
 const importInput = $("#importInput");
 const progressImportInput = $("#progressImportInput");
 const mobileMenuToggle = $("#mobileMenuToggle");
 
 document.addEventListener("click", handleClick);
 document.addEventListener("change", handleChange);
-searchInput.addEventListener("input", (event) => {
+function handleSearchInput(event) {
   state.query = event.target.value.trim();
+  searchInput.value = state.query;
+  if (mobileSearchInput) mobileSearchInput.value = state.query;
   resetSession();
   render();
-});
+}
+
+searchInput.addEventListener("input", handleSearchInput);
+mobileSearchInput?.addEventListener("input", handleSearchInput);
 importInput.addEventListener("change", importQuestions);
 progressImportInput.addEventListener("change", importProgress);
 
@@ -817,6 +870,8 @@ function handleClick(event) {
   if (action === "finish-exam") finishExam();
   if (action === "restart-exam") restartExam();
   if (action === "review-exam-wrong") reviewExamWrong();
+  if (action === "start-verified-500") startVerified500();
+  if (action === "copy-enrollment-questions") copyEnrollmentQuestions();
 }
 
 function handleChange(event) {
@@ -824,12 +879,16 @@ function handleChange(event) {
   if (target.id === "chapterSelect") {
     setChapter(target.value);
   }
+  if (target.matches("[data-guide-check]")) {
+    toggleGuideCheck(target.dataset.guideCheck, target.checked);
+  }
 }
 
 function setView(view) {
   state.view = view;
   state.mobileMenuOpen = false;
   render();
+  scrollPageTop();
 }
 
 function openSubject(subject) {
@@ -838,6 +897,7 @@ function openSubject(subject) {
   state.mobileMenuOpen = false;
   resetSession();
   render();
+  scrollPageTop();
 }
 
 function toggleMobileMenu() {
@@ -848,6 +908,9 @@ function toggleMobileMenu() {
 function setPracticeSubject(subject) {
   state.view = subjectView(subject);
   state.practiceSubject = subject;
+  if (subject !== "科目一" && state.practiceMode === "verified500") {
+    state.practiceMode = "random";
+  }
   state.chapter = "全部";
   state.mobileMenuOpen = false;
   resetSession();
@@ -855,11 +918,16 @@ function setPracticeSubject(subject) {
 }
 
 function setPracticeMode(mode) {
+  if (mode === "verified500") {
+    state.view = "subject1";
+    state.practiceSubject = "科目一";
+  }
   state.practiceMode = mode;
   if (mode === "exam") {
     state.chapter = "全部";
     state.query = "";
     searchInput.value = "";
+    if (mobileSearchInput) mobileSearchInput.value = "";
   }
   resetSession();
   render();
@@ -889,6 +957,7 @@ function render() {
     subject2: () => renderSubject("科目二"),
     subject3: () => renderSubject("科目三"),
     subject4: () => renderSubject("科目四"),
+    guide: renderEnrollmentGuide,
     review: renderReview,
     settings: renderSettings
   };
@@ -952,8 +1021,9 @@ function renderHome() {
           <p>本工具离线可用，移动端自适应；先按全科地图学习，再用题目和检查题验证。</p>
         </div>
         <div class="toolbar">
-          <button class="action primary" data-action="subject" data-subject="科目一">${icon("book")}从知识地图开始</button>
-          <button class="action" data-action="view" data-view="settings">${icon("upload")}导入题库</button>
+          <button class="action primary" data-action="start-verified-500">${icon("play")}精简500题</button>
+          <button class="action" data-action="subject" data-subject="科目一">${icon("book")}知识地图</button>
+          <button class="action" data-action="view" data-view="guide">${icon("clipboard")}报名攻略</button>
         </div>
       </div>
 
@@ -963,6 +1033,8 @@ function renderHome() {
         ${subjectCard("科目三", CURRICULUM["科目三"].goal, "amber", "road")}
         ${subjectCard("科目四", CURRICULUM["科目四"].goal, "red", "shield")}
       </div>
+
+      ${renderVerified500Promo()}
 
       <section class="panel question-card">
         <div class="section-head">
@@ -977,6 +1049,226 @@ function renderHome() {
       ${renderPracticeBlock()}
     </div>
   `;
+}
+
+function renderEnrollmentGuide() {
+  const checked = new Set(store.guideChecks || []);
+  const completed = ENROLLMENT_CHECKLIST.filter((item) => checked.has(item.id)).length;
+  const percent = Math.round((completed / ENROLLMENT_CHECKLIST.length) * 100);
+  return `
+    <div class="view-grid enrollment-guide">
+      <div class="section-head">
+        <div>
+          <h2>驾校报名攻略</h2>
+          <p>全国通用的报名核对框架；周口的实际价格、训练场和排队时间，以当地交通运输主管部门、车管所及书面合同为准。</p>
+        </div>
+        <a class="action" href="https://gab.122.gov.cn/" target="_blank" rel="noopener noreferrer">${icon("external")}交通安全综合服务平台</a>
+      </div>
+
+      <section class="guide-facts" aria-label="报名关键规则">
+        ${guideFact("18周岁", "C1/C2最低申请年龄")}
+        ${guideFact("3年", "学习驾驶证明有效期")}
+        ${guideFact("各5次", "科二、科三预约考试上限")}
+        ${guideFact("不可信", "包过、代考、内部名额")}
+      </section>
+
+      <section class="guide-band">
+        <div class="section-head">
+          <div>
+            <h2>先选 C1 还是 C2</h2>
+            <p>不要只看报名价，先看未来真正会开的车。</p>
+          </div>
+        </div>
+        <div class="license-compare" role="table" aria-label="C1和C2对比">
+          <div class="compare-row compare-head" role="row">
+            <span role="columnheader">对比</span><strong role="columnheader">C1 手动挡</strong><strong role="columnheader">C2 自动挡</strong>
+          </div>
+          <div class="compare-row" role="row">
+            <span role="cell">适合</span><p role="cell" data-label="C1 手动挡">未来可能开手动挡，或希望准驾范围更宽</p><p role="cell" data-label="C2 自动挡">主要开自动挡、新能源车，想降低离合操作难度</p>
+          </div>
+          <div class="compare-row" role="row">
+            <span role="cell">科二</span><p role="cell" data-label="C1 手动挡">规定项目含坡道定点停车和起步</p><p role="cell" data-label="C2 自动挡">规定项目不含坡道定点停车和起步</p>
+          </div>
+          <div class="compare-row" role="row">
+            <span role="cell">取舍</span><p role="cell" data-label="C1 手动挡">训练动作更多，能驾驶对应的小型手动和自动挡汽车</p><p role="cell" data-label="C2 自动挡">训练更聚焦自动挡，但不能驾驶手动挡汽车</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="guide-band">
+        <div class="section-head">
+          <div>
+            <h2>从报名到拿证</h2>
+            <p>具体先后和审核时间可能因当地安排变化。</p>
+          </div>
+        </div>
+        <ol class="enrollment-timeline">
+          ${[
+            ["资格自查", "确认年龄、身体条件、既往驾驶证和禁申领情形。"],
+            ["比校签约", "查备案、看场地车辆、问约车，拿到完整费用表和合同。"],
+            ["体检建档", "按要求提交身份证明和身体条件证明，核对本人报名信息。"],
+            ["科一与学驾证明", "科目一合格后取得学习驾驶证明，有效期三年。"],
+            ["科二科三训练", "完成有效训练和学时审核后自行核对预约信息、参加考试。"],
+            ["安全文明与领证", "道路驾驶合格后参加安全文明驾驶常识考试，完成领证流程。"]
+          ].map(([title, text], index) => `<li><b>${index + 1}</b><div><strong>${title}</strong><p>${text}</p></div></li>`).join("")}
+        </ol>
+      </section>
+
+      <div class="guide-columns">
+        <section class="guide-band">
+          <h2>报名材料别交糊涂</h2>
+          ${renderGuidePoints([
+            ["先拿清单", "按当地车管所或正规驾校清单准备身份证明、身体条件证明和照片；采集方式以当地要求为准。"],
+            ["原件取回", "身份证原件用于现场核验后及时取回，不长期留给招生中介或个人。"],
+            ["信息复核", "提交前逐字核对姓名、证件号码、手机号和申请车型，发现错误立即更正。"],
+            ["账号自管", "交管12123由本人注册和使用；密码、短信验证码、人脸验证都不交给他人。"],
+            ["留存凭证", "合同、费用附件、付款票据、培训记录和重要聊天承诺分别留存电子版。"]
+          ])}
+        </section>
+        <section class="guide-band">
+          <h2>预约考试这样安排</h2>
+          ${renderGuidePoints([
+            ["本人核对", "在交管系统核对科目、日期、考场和预约状态，驾校口头通知不能替代系统结果。"],
+            ["没有内部名额", "预约排序由交管系统按规则处理；任何“花钱插队、保证名额”的说法都不要信。"],
+            ["不能去就取消", "无法按时参加时，按系统要求并至少提前一日办理取消；无故缺考按该次不合格处理。"],
+            ["练稳再约", "科二、科三一次预约首次不合格可当场补考一次，但两科各自最多预约考试五次。"],
+            ["盯住有效期", "从科目一合格取得学习驾驶证明起规划三年期限，不把后续科目拖到临近到期。"]
+          ])}
+        </section>
+      </div>
+
+      <div class="guide-columns">
+        <section class="guide-band">
+          <h2>挑驾校看这五件事</h2>
+          ${renderGuidePoints([
+            ["资质备案", "核验经营主体、培训备案、报名点与实际签约主体是否一致。"],
+            ["真实产能", "看训练车数量、教练人数和学员量，问高峰期约车要等多久。"],
+            ["场地车型", "实地看科二科三场地；训练车尽量与考试车的挡位、尺寸和操作接近。"],
+            ["时间匹配", "把上班上学时间告诉对方，确认周末、晚间和临时取消规则。"],
+            ["口碑证据", "优先问近期真实学员：约车、加费、换教练、退费是否按合同执行。"]
+          ])}
+        </section>
+        <section class="guide-band">
+          <h2>费用一定逐项写清</h2>
+          ${renderGuidePoints([
+            ["基础培训", "报名培训费、教材或线上课程费、建档服务费。"],
+            ["行政与考试", "体检照相、考试费、补考费由谁收、何时收、是否按官方票据结算。"],
+            ["训练附加", "模拟费、考场适应费、加练费、接送费、夜间或周末费。"],
+            ["退出成本", "转校、换教练、暂停、退学怎样计算已发生课时和退款。"],
+            ["付款证据", "优先对公付款，合同、收据、聊天承诺和费用表都留存。"]
+          ])}
+        </section>
+      </div>
+
+      <section class="guide-band risk-band">
+        <div class="section-head">
+          <div><h2>这些话听见就停一下</h2><p>承诺越绝对，越要落到合同、票据和官方系统里核实。</p></div>
+        </div>
+        <div class="risk-grid">
+          ${["保证一次过、不过全赔", "可以代刷学时或代考", "车管所有内部名额", "今天不交定金马上涨价", "先交私人微信，合同以后补", "低价全包但拒绝列收费明细"].map((item) => `<div class="risk-item">${icon("alert")}<span>${item}</span></div>`).join("")}
+        </div>
+      </section>
+
+      <section class="guide-band question-sheet">
+        <div class="section-head">
+          <div><h2>到店直接问</h2><p>让招生人员逐项回答，口头承诺写进合同或费用附件。</p></div>
+          <button class="action" data-action="copy-enrollment-questions">${icon("copy")}复制询价清单</button>
+        </div>
+        <ol>${ENROLLMENT_QUESTIONS.map((item) => `<li>${item}</li>`).join("")}</ol>
+        ${state.guideCopyStatus ? `<p class="copy-status ${state.guideCopySucceeded ? "success" : "error"}" role="status">${state.guideCopyStatus}</p>` : ""}
+      </section>
+
+      <div class="guide-columns">
+        <section class="guide-band">
+          <h2>要转校时先做四步</h2>
+          ${renderGuidePoints([
+            ["先问接收条件", "先向拟转入驾校和当地主管部门确认能否接收、哪些成绩或学时可衔接，再办理原校退出。"],
+            ["拿齐记录", "索取合同、付款票据、已训练项目、培训学时和报名档案的可提供记录。"],
+            ["书面结算", "按合同列明已发生费用、应退金额、退款时间和双方责任，不只接受口头承诺。"],
+            ["系统核对", "转校完成后由本人核对交管系统中的考试地、预约和联系方式是否正确。"]
+          ])}
+        </section>
+        <section class="guide-band">
+          <h2>发生纠纷找对渠道</h2>
+          ${renderGuidePoints([
+            ["先固定证据", "保存合同、收费明细、转账记录、票据、聊天记录和培训安排，按时间整理诉求。"],
+            ["先书面协商", "向合同上的驾校主体提出明确诉求和回复期限，保留提交与回复记录。"],
+            ["分清主管事项", "培训资质、学时和驾校经营问题咨询当地交通运输主管部门；考试和驾驶证事项咨询公安交管部门。"],
+            ["消费争议", "收费、退费或虚假宣传争议，可凭证据向12315等正规渠道咨询或投诉。"]
+          ])}
+        </section>
+      </div>
+
+      <section class="guide-band enrollment-checks">
+        <div class="section-head">
+          <div><h2>付款前核对</h2><p>已完成 ${completed} / ${ENROLLMENT_CHECKLIST.length}</p></div>
+          <strong class="check-percent">${percent}%</strong>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${percent}%"></div></div>
+        <div class="check-grid">
+          ${ENROLLMENT_CHECKLIST.map((item) => `
+            <label class="guide-check ${checked.has(item.id) ? "checked" : ""}">
+              <input type="checkbox" data-guide-check="${item.id}" ${checked.has(item.id) ? "checked" : ""} />
+              <span class="check-box">${icon("check")}</span>
+              <span>${item.text}</span>
+            </label>
+          `).join("")}
+        </div>
+      </section>
+
+      <div class="notice">预约排名和考试结果以交管系统为准。不要把身份证原件长期留给中介，不要提供交管12123密码、短信验证码或人脸验证，也不要参与代刷学时、代考、买分卖分。</div>
+    </div>
+  `;
+}
+
+function guideFact(value, label) {
+  return `<div><strong>${value}</strong><span>${label}</span></div>`;
+}
+
+function renderGuidePoints(items) {
+  return `<div class="guide-point-list">${items.map(([title, text]) => `<div><strong>${title}</strong><p>${text}</p></div>`).join("")}</div>`;
+}
+
+function toggleGuideCheck(id, isChecked) {
+  const valid = ENROLLMENT_CHECKLIST.some((item) => item.id === id);
+  if (!valid) return;
+  const current = new Set(store.guideChecks || []);
+  if (isChecked) current.add(id);
+  else current.delete(id);
+  store.guideChecks = [...current];
+  saveStore();
+  render();
+}
+
+async function copyEnrollmentQuestions() {
+  const text = `驾校报名询价清单\n\n${ENROLLMENT_QUESTIONS.map((item, index) => `${index + 1}. ${item}`).join("\n")}`;
+  let copied = false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch {
+        copied = false;
+      }
+    }
+    if (!copied) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.className = "copy-helper";
+      document.body.appendChild(textarea);
+      textarea.select();
+      copied = document.execCommand("copy");
+      textarea.remove();
+    }
+  } catch {
+    copied = false;
+  }
+  state.guideCopyStatus = copied
+    ? "询价清单已复制。去驾校时逐项问清，再决定是否付款。"
+    : "浏览器未允许自动复制，请按页面清单逐项询问。";
+  state.guideCopySucceeded = copied;
+  render();
 }
 
 function subjectCard(subject, text, tone, iconName) {
@@ -994,6 +1286,57 @@ function subjectCard(subject, text, tone, iconName) {
       <span class="tag">进入模块</span>
     </button>
   `;
+}
+
+function renderVerified500Promo(compact = false) {
+  const meta = globalThis.VERIFIED_500_META || { questionCount: 500, ruleCount: 0 };
+  const progress = getVerified500Progress();
+  const percent = Math.round((progress.attempted / Math.max(1, meta.questionCount)) * 100);
+  return `
+    <section class="verified-promo ${compact ? "compact" : ""}">
+      <div class="verified-count" aria-hidden="true"><strong>500</strong><span>题</span></div>
+      <div class="verified-copy">
+        <div class="chip-list">
+          <span class="tag verified-tag">免费</span>
+          <span class="tag">${meta.ruleCount} 个法规规则点</span>
+          <span class="tag">逐题可查来源</span>
+        </div>
+        <h2>精简500题（法规核验版）</h2>
+        <p>依据现行公开法规编制，覆盖考试规则、通行规则、灯光速度、违法记分和事故处理。它不是公安部公开原题，也不代表正式考试只从这500道题抽取。</p>
+        <div class="verified-progress-row">
+          <div class="progress-track" aria-label="精简500题完成进度"><div class="progress-fill" style="width:${percent}%"></div></div>
+          <span>${progress.attempted} / ${meta.questionCount}</span>
+        </div>
+      </div>
+      <div class="verified-actions">
+        <button class="action primary" data-action="start-verified-500">${icon("play")}${progress.attempted ? "继续精练" : "开始精练"}</button>
+        <span>已答对 ${progress.correct} 道</span>
+      </div>
+    </section>
+  `;
+}
+
+function getVerified500Progress() {
+  const ids = new Set(getVerified500().map((item) => item.id));
+  const entries = Object.entries(store.questionStats || {}).filter(([id]) => ids.has(id));
+  return {
+    attempted: entries.length,
+    correct: entries.filter(([, stats]) => stats.lastCorrect).length
+  };
+}
+
+function startVerified500() {
+  state.view = "subject1";
+  state.practiceSubject = "科目一";
+  state.practiceMode = "verified500";
+  state.chapter = "全部";
+  state.query = "";
+  searchInput.value = "";
+  if (mobileSearchInput) mobileSearchInput.value = "";
+  state.mobileMenuOpen = false;
+  resetSession();
+  render();
+  scrollToElement(".practice-grid");
 }
 
 function getSubjectStats(subject) {
@@ -1069,6 +1412,8 @@ function renderSubject(subject) {
           <button class="action" data-action="view" data-view="review">${icon("star")}看错题</button>
         </div>
       </div>
+
+      ${subject === "科目一" ? renderVerified500Promo(true) : ""}
 
       <section class="panel question-card">
         <div class="section-head">
@@ -1157,7 +1502,29 @@ function renderSubjectChecklist(subject) {
   return `<ul class="step-list">${map[subject].map((item, index) => `<li><b>${index + 1}</b><span>${item}</span></li>`).join("")}</ul>`;
 }
 
+function renderPracticeSelectors() {
+  return `
+    <div class="question-top">
+      <div class="segmented">
+        ${SUBJECT_ORDER.map((subject) => `
+          <button class="${state.practiceSubject === subject ? "active" : ""}" data-action="set-subject" data-subject="${subject}" aria-pressed="${state.practiceSubject === subject}">${subject}</button>
+        `).join("")}
+      </div>
+      <div class="toolbar mode-toolbar ${state.practiceSubject === "科目一" ? "has-verified" : ""}">
+        ${state.practiceSubject === "科目一" ? `<button class="chip ${state.practiceMode === "verified500" ? "active" : ""}" data-action="set-mode" data-mode="verified500" aria-pressed="${state.practiceMode === "verified500"}">精简500题</button>` : ""}
+        <button class="chip ${state.practiceMode === "random" ? "active" : ""}" data-action="set-mode" data-mode="random" aria-pressed="${state.practiceMode === "random"}">随机</button>
+        <button class="chip ${state.practiceMode === "chapter" ? "active" : ""}" data-action="set-mode" data-mode="chapter" aria-pressed="${state.practiceMode === "chapter"}">章节</button>
+        <button class="chip ${state.practiceMode === "wrong" ? "active" : ""}" data-action="set-mode" data-mode="wrong" aria-pressed="${state.practiceMode === "wrong"}">错题</button>
+        <button class="chip ${state.practiceMode === "exam" ? "active" : ""}" data-action="set-mode" data-mode="exam" aria-pressed="${state.practiceMode === "exam"}">模拟</button>
+      </div>
+    </div>
+  `;
+}
+
 function renderPracticeBlock(forcedSubject) {
+  if (forcedSubject && forcedSubject !== "科目一" && state.practiceMode === "verified500") {
+    state.practiceMode = "random";
+  }
   if (forcedSubject && state.practiceSubject !== forcedSubject) {
     state.practiceSubject = forcedSubject;
     state.chapter = "全部";
@@ -1177,10 +1544,11 @@ function renderPracticeBlock(forcedSubject) {
   const questions = state.session;
   const current = questions[state.current];
   if (!current) {
-    return `<section class="question-card"><div class="empty">当前筛选没有题目。你可以清空搜索，或在“数据”里导入更多题库。</div></section>`;
+    return `<section class="question-card">${renderPracticeSelectors()}<div class="empty">当前筛选没有题目。你可以切换练习模式、清空搜索，或在“数据”里导入更多题库。</div></section>`;
   }
   const progress = Math.round(((state.current + 1) / questions.length) * 100);
-  const chapters = ["全部", ...unique(allQuestions().filter((item) => item.subject === state.practiceSubject).map((item) => item.chapter))];
+  const chapterPool = state.practiceMode === "verified500" ? getVerified500() : allQuestions();
+  const chapters = ["全部", ...unique(chapterPool.filter((item) => item.subject === state.practiceSubject).map((item) => item.chapter))];
   const active = getActive(current.id);
   const selected = active.selected || [];
   const checked = active.checked;
@@ -1190,19 +1558,7 @@ function renderPracticeBlock(forcedSubject) {
   return `
     <section class="practice-grid">
       <article class="question-card">
-        <div class="question-top">
-          <div class="segmented">
-            ${SUBJECT_ORDER.map((subject) => `
-              <button class="${state.practiceSubject === subject ? "active" : ""}" data-action="set-subject" data-subject="${subject}" aria-pressed="${state.practiceSubject === subject}">${subject}</button>
-            `).join("")}
-          </div>
-          <div class="toolbar">
-            <button class="chip ${state.practiceMode === "random" ? "active" : ""}" data-action="set-mode" data-mode="random">随机</button>
-            <button class="chip ${state.practiceMode === "chapter" ? "active" : ""}" data-action="set-mode" data-mode="chapter">章节</button>
-            <button class="chip ${state.practiceMode === "wrong" ? "active" : ""}" data-action="set-mode" data-mode="wrong">错题</button>
-            <button class="chip ${state.practiceMode === "exam" ? "active" : ""}" data-action="set-mode" data-mode="exam">模拟</button>
-          </div>
-        </div>
+        ${renderPracticeSelectors()}
 
         <div class="question-top">
           <select id="chapterSelect" aria-label="章节" ${isExam ? "disabled" : ""}>
@@ -1216,6 +1572,7 @@ function renderPracticeBlock(forcedSubject) {
           <span class="tag">${current.subject}</span>
           <span class="tag">${current.chapter}</span>
           <span class="tag">${typeName(current.type)}</span>
+          ${current.bank === "verified500" ? `<span class="tag verified-tag">法规核验版</span>` : ""}
           ${store.favorites.includes(current.id) ? `<span class="tag">已收藏</span>` : ""}
           ${store.wrong[current.id] ? `<span class="tag">错 ${store.wrong[current.id]} 次</span>` : ""}
         </div>
@@ -1246,7 +1603,9 @@ function renderPracticeBlock(forcedSubject) {
       <aside class="tool-card">
         <h3>本轮${state.practiceSubject === "科目一" || state.practiceSubject === "科目四" ? "刷题" : "检查训练"}</h3>
         ${renderSessionSummary()}
-        <div class="notice">先按学习地图掌握知识和动作，再用训练题检测。拿到驾校题库后，可在“数据”页导入 JSON，工具会自动合并。</div>
+        <div class="notice">${state.practiceMode === "verified500"
+          ? "这500题按公开法规编制，不是公安部公布原题。正式考试范围更广，请同时学习知识体系并完成模拟考试。"
+          : "先按学习地图掌握知识和动作，再用训练题检测。拿到驾校题库后，可在“数据”页导入 JSON，工具会自动合并。"}</div>
       </aside>
     </section>
   `;
@@ -1268,11 +1627,17 @@ function renderAnswer(question, option, index, selected, checked) {
 }
 
 function renderFeedback(question, correct, revealed) {
+  const sourceLink = question.sourceUrl ? `
+    <a class="feedback-source" href="${escapeHtml(question.sourceUrl)}" target="_blank" rel="noopener noreferrer">
+      ${icon("external")}<span>核对依据：${escapeHtml(question.source || question.sourceTitle || "官方法规")}</span>
+    </a>
+  ` : "";
   return `
     <div class="feedback ${correct ? "good" : "bad"}">
       <strong>${revealed ? "解析已展开" : correct ? "答对了" : "这题错了"}</strong>
       <p>${question.explanation}</p>
       <p class="memory-line">${question.memory}</p>
+      ${sourceLink}
     </div>
   `;
 }
@@ -1291,12 +1656,15 @@ function renderSessionSummary() {
     `;
   }
   const wrongItems = state.session.filter((item) => store.wrong[item.id]).slice(0, 6);
+  const verifiedProgress = getVerified500Progress();
   return `
     <p>模式：${modeName(state.practiceMode)} · 章节：${state.chapter}</p>
     <div class="chip-list">
       <span class="tag">本轮 ${state.session.length} 题</span>
       <span class="tag">题库 ${allQuestions().length} 题</span>
-      <span class="tag">自定义 ${customBank.length} 题</span>
+      ${state.practiceMode === "verified500"
+        ? `<span class="tag">已完成 ${verifiedProgress.attempted} / 500</span>`
+        : `<span class="tag">自定义 ${customBank.length} 题</span>`}
     </div>
     <h3 style="margin-top:16px">本轮错题</h3>
     ${wrongItems.length ? `
@@ -1409,9 +1777,16 @@ function scrollToElement(selector) {
   });
 }
 
+function scrollPageTop() {
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+}
+
 function ensureSession() {
   if (state.session.length) return;
   let questions = allQuestions().filter((item) => item.subject === state.practiceSubject);
+  if (state.practiceMode === "verified500") {
+    questions = questions.filter((item) => item.bank === "verified500");
+  }
   if (state.chapter !== "全部") {
     questions = questions.filter((item) => item.chapter === state.chapter);
   }
@@ -1426,6 +1801,9 @@ function ensureSession() {
     questions = shuffle(questions);
   }
   if (state.practiceMode === "exam") {
+    if (state.practiceSubject === "科目一") {
+      questions = questions.filter((item) => item.type === "single" || item.type === "judge");
+    }
     const limit = examLimit(state.practiceSubject);
     questions = questions.slice(0, limit);
   }
@@ -1498,6 +1876,16 @@ function recordAnswer(id, correct) {
   }
   store.history.unshift({ id, correct, at: new Date().toISOString() });
   store.history = store.history.slice(0, 200);
+  const previous = store.questionStats?.[id] || { attempts: 0, correct: 0, lastCorrect: false };
+  store.questionStats = {
+    ...(store.questionStats || {}),
+    [id]: {
+      attempts: previous.attempts + 1,
+      correct: previous.correct + (correct ? 1 : 0),
+      lastCorrect: correct,
+      updatedAt: new Date().toISOString()
+    }
+  };
   saveStore();
 }
 
@@ -1602,7 +1990,7 @@ function renderSettings() {
       <div class="plan-grid">
         <section class="tool-card">
           <h3>题库</h3>
-          <p>内置 ${BASE_QUESTIONS.length + EXTRA_QUESTIONS.length} 道种子题，自定义 ${customBank.length} 道。导入后会自动去重合并。</p>
+          <p>内置法规核验题 ${getVerified500().length} 道，基础训练题 ${BASE_QUESTIONS.length + EXTRA_QUESTIONS.length} 道，自定义 ${customBank.length} 道。导入后会自动去重合并。</p>
           <div class="toolbar">
             <button class="action primary" data-action="import-bank">${icon("upload")}导入题库</button>
             <button class="action" data-action="export-bank">${icon("download")}导出题库</button>
@@ -1621,7 +2009,8 @@ function renderSettings() {
       </div>
       <section class="tool-card">
         <h3>当前法规口径</h3>
-        <p>工具知识点按公开考试模块整理：机动车驾驶证申领和使用规定、道路交通安全违法行为记分管理办法、机动车驾驶人考试内容和方法 GA 1026-2022。地方考试细节和驾校点位以当地车管所、考场和教练要求为准。</p>
+        <p>法规核验题参考《机动车驾驶证申领和使用规定》（公安部令第172号）、《道路交通安全违法行为记分管理办法》（公安部令第163号）、《道路交通安全法》及其实施条例；考试结构参考 GA 1026-2022。核验日期：${globalThis.VERIFIED_500_META?.version || "2026-07-11"}。地方考试细节和驾校点位以当地车管所、考场和教练要求为准。</p>
+        <div class="notice">“精简500题”不是公安部发布的固定原题集。正式试卷由考试系统按规定从考试题库随机抽取，不能承诺只刷500道原题就一定覆盖考试。</div>
       </section>
     </div>
   `;
@@ -1649,7 +2038,7 @@ function importQuestions(event) {
       const incoming = Array.isArray(data) ? data : data.questions;
       if (!Array.isArray(incoming)) throw new Error("题库 JSON 必须是数组，或包含 questions 数组。");
       const normalized = incoming.map(normalizeQuestion).filter(Boolean);
-      const existingIds = new Set([...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...customBank].map((item) => item.id));
+      const existingIds = new Set([...getVerified500(), ...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...customBank].map((item) => item.id));
       const fresh = normalized.filter((item) => !existingIds.has(item.id));
       customBank = [...customBank, ...fresh];
       localStorage.setItem(CUSTOM_BANK_KEY, JSON.stringify(customBank));
@@ -1704,7 +2093,18 @@ function normalizeProgress(value) {
       .slice(0, 200)
       .map((item) => ({ id: item.id, correct: item.correct, at: String(item.at || new Date().toISOString()) }))
     : [];
-  return { answered, correct, wrong, favorites, mastered, history };
+  const questionStats = value.questionStats && typeof value.questionStats === "object" && !Array.isArray(value.questionStats)
+    ? Object.fromEntries(Object.entries(value.questionStats).filter(([id, stats]) => id && stats && typeof stats === "object").map(([id, stats]) => [String(id), {
+      attempts: Math.max(0, Number.parseInt(stats.attempts, 10) || 0),
+      correct: Math.max(0, Number.parseInt(stats.correct, 10) || 0),
+      lastCorrect: Boolean(stats.lastCorrect),
+      updatedAt: String(stats.updatedAt || "")
+    }]))
+    : {};
+  const guideChecks = Array.isArray(value.guideChecks)
+    ? unique(value.guideChecks.map(String)).filter((id) => ENROLLMENT_CHECKLIST.some((item) => item.id === id))
+    : [];
+  return { answered, correct, wrong, favorites, mastered, history, questionStats, guideChecks };
 }
 
 function normalizeQuestion(item, index) {
@@ -1719,7 +2119,12 @@ function normalizeQuestion(item, index) {
     options: item.options.map(String),
     answer: item.answer.map(Number).filter((answer) => Number.isInteger(answer)),
     explanation: String(item.explanation || "暂无解析。"),
-    memory: String(item.memory || "把这题加入错题本，考前再看。")
+    memory: String(item.memory || "把这题加入错题本，考前再看。"),
+    bank: item.bank && item.bank !== "verified500" ? String(item.bank) : "custom",
+    source: item.source ? String(item.source) : "",
+    sourceTitle: item.sourceTitle ? String(item.sourceTitle) : "",
+    sourceUrl: item.sourceUrl ? String(item.sourceUrl) : "",
+    verifiedAt: item.verifiedAt ? String(item.verifiedAt) : ""
   };
 }
 
@@ -1732,7 +2137,11 @@ function resetProgress() {
 }
 
 function allQuestions() {
-  return [...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...customBank];
+  return [...getVerified500(), ...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...customBank];
+}
+
+function getVerified500() {
+  return Array.isArray(globalThis.VERIFIED_500) ? globalThis.VERIFIED_500 : [];
 }
 
 function loadStore() {
@@ -1797,7 +2206,7 @@ function typeName(type) {
 }
 
 function modeName(mode) {
-  return { random: "随机练习", chapter: "章节练习", wrong: "错题练习", exam: "模拟考试" }[mode] || "练习";
+  return { verified500: "精简500题", random: "随机练习", chapter: "章节练习", wrong: "错题练习", exam: "模拟考试" }[mode] || "练习";
 }
 
 function subjectView(subject) {
@@ -1862,6 +2271,7 @@ function icon(name) {
     cones: `<svg viewBox="0 0 24 24"><path d="m8 20 4-16 4 16"/><path d="M6 20h12"/><path d="M9 14h6"/><path d="M10 9h4"/></svg>`,
     road: `<svg viewBox="0 0 24 24"><path d="M7 22 10 2"/><path d="m14 2 3 20"/><path d="M12 6v3"/><path d="M12 13v3"/><path d="M12 20v2"/></svg>`,
     shield: `<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-5"/></svg>`,
+    clipboard: `<svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2"/><path d="m9 13 2 2 4-5"/></svg>`,
     star: `<svg viewBox="0 0 24 24"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21 7 14.2 2 9.3l6.9-1L12 2Z"/></svg>`,
     download: `<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`,
     upload: `<svg viewBox="0 0 24 24"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>`,
@@ -1870,6 +2280,9 @@ function icon(name) {
     eye: `<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>`,
     left: `<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>`,
     right: `<svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>`,
+    external: `<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="m20 4-9 9"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/></svg>`,
+    alert: `<svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg>`,
+    copy: `<svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></svg>`,
     trash: `<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`
   };
   return icons[name] || icons.book;
